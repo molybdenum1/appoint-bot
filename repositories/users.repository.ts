@@ -49,3 +49,21 @@ export async function createUser(telegram_id: string, name?: string) {
     
     return data;
 }
+
+export async function createMasterUser(telegram_id: string, name?: string) {
+    const { data, error } = await supabase
+        .from('users')
+        .insert({
+            telegram_id,
+            name: name || null,
+            role: 'master'
+        })
+        .select()
+        .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
