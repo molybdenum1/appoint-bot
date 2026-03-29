@@ -1,5 +1,6 @@
-import { Bot, Keyboard } from "grammy";
+import { Bot, Context, Keyboard } from "grammy";
 import "dotenv/config";
+import { createUser, findUsers } from "./repositories/users.repository.js";
 
 const token = process.env.BOT_API_KEY;
 if (!token) {
@@ -19,8 +20,37 @@ bot.command("start", (ctx) => {
   });
 });
 
-bot.on("message", (ctx) => {
-  ctx.reply("You said: " + ctx.message.text);
+// bot.on("message", (ctx) => {
+//   ctx.reply("You said: " + ctx.message.text);
+// });
+
+bot.hears("Option 1", async (ctx) => {
+  const users = await findUsers();
+  console.log(users)
+  console.log(ctx.from);
+  ctx.reply("You selected Option 1");
+});
+
+bot.hears("Option 2", async (ctx: Context) => {
+  if (!ctx.from) {
+    ctx.reply("User information is not available.");
+    return;
+  }
+  await createUser(ctx.from.id.toString(), ctx.from.first_name);
+  ctx.reply("You selected Option 2");
+});
+
+// Обработчик ошибок
+bot.catch((err) => {
+  const ctx = err.ctx;
+  console.error(`Error while handling update ${ctx.update.update_id}:`);
+  const e = err.error;
+  console.error("Error:", e);
+  
+  // Отправляем сообщение пользователю об ошибке
+  if (ctx.chat) {
+    ctx.reply("Sorry, an error occurred. Please try again later.").catch(console.error);
+  }
 });
 
 console.log("Bot is starting...");
